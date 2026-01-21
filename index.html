@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>EDAŞ Şikayet Simülatörü</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 500px; }
+        .scenario { background: #e3f2fd; padding: 15px; border-left: 5px solid #2196f3; margin-bottom: 20px; font-style: italic; }
+        .options { display: flex; gap: 10px; margin-bottom: 20px; }
+        button { flex: 1; padding: 10px; cursor: pointer; border: none; border-radius: 5px; background: #2196f3; color: white; font-weight: bold; }
+        button:hover { background: #1976d2; }
+        .feedback { display: none; padding: 15px; border-radius: 5px; margin-top: 20px; }
+        .error { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+        .success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Şikayet Teşhis Simülatörü</h2>
+    <div id="scenario-box" class="scenario">Müşteri: "Sokağımızdaki lamba 3 gündür yanmıyor, karanlıkta kalıyoruz!"</div>
+    
+    <p><strong>Bu şikayetin türü nedir?</strong></p>
+    <div class="options">
+        <button onclick="checkAnswer('Süreç')">Süreç Şikayeti</button>
+        <button onclick="checkAnswer('Personel')">Personel Şikayeti</button>
+    </div>
+
+    <div id="data-fields" style="display:none;">
+        <p><strong>Zorunlu Veriler (Hangilerini almalısın?):</strong></p>
+        <input type="checkbox" id="v1"> Direk Numarası<br>
+        <input type="checkbox" id="v2"> Mail / İrtibat No<br>
+        <input type="checkbox" id="v3"> Plaka No<br><br>
+        <button onclick="checkData()">Kaydı Tamamla</button>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+</div>
+
+<script>
+    let currentScenario = 0;
+    const scenarios = [
+        { text: 'Müşteri: "Sokağımızdaki lamba 3 gündür yanmıyor!"', type: 'Süreç', data: ['v1', 'v2'] },
+        { text: 'Müşteri: "Personeliniz sayacı okurken bana bağırdı!"', type: 'Personel', data: ['v2'] },
+        { text: 'Müşteri: "Şirket aracınız 34 ABC 123 plakalı araç çok hızlı gidiyordu!"', type: 'Personel', data: ['v2', 'v3'] }
+    ];
+
+    function checkAnswer(choice) {
+        if(choice === scenarios[currentScenario].type) {
+            document.getElementById('data-fields').style.display = 'block';
+            showFeedback('Doğru Teşhis! Şimdi zorunlu verileri seçin.', 'success');
+        } else {
+            showFeedback('Hatalı Teşhis! Bu sorunun kök nedeni ' + scenarios[currentScenario].type + ' kaynaklıdır.', 'error');
+        }
+    }
+
+    function checkData() {
+        const scenario = scenarios[currentScenario];
+        const v1 = document.getElementById('v1').checked;
+        const v2 = document.getElementById('v2').checked;
+        const v3 = document.getElementById('v3').checked;
+        
+        // Basit kontrol mantığı
+        if(v2 && (scenario.data.includes('v1') == v1) && (scenario.data.includes('v3') == v3)) {
+            showFeedback('Mükemmel Kayıt! Aralık ayı hata istatistiklerini düşürdünüz.', 'success');
+        } else {
+            showFeedback('Hata! Eksik veri girdiniz (Mail veya Teknik Bilgi eksik).', 'error');
+        }
+    }
+
+    function showFeedback(msg, type) {
+        const f = document.getElementById('feedback');
+        f.innerHTML = msg;
+        f.className = 'feedback ' + type;
+        f.style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
