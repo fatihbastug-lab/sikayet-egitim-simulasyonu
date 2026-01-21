@@ -2,80 +2,143 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>EDAŞ Şikayet Simülatörü</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDAŞ Operasyonel Mükemmellik Simülatörü</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 500px; }
-        .scenario { background: #e3f2fd; padding: 15px; border-left: 5px solid #2196f3; margin-bottom: 20px; font-style: italic; }
-        .options { display: flex; gap: 10px; margin-bottom: 20px; }
-        button { flex: 1; padding: 10px; cursor: pointer; border: none; border-radius: 5px; background: #2196f3; color: white; font-weight: bold; }
-        button:hover { background: #1976d2; }
-        .feedback { display: none; padding: 15px; border-radius: 5px; margin-top: 20px; }
-        .error { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
-        .success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        :root { --primary: #003366; --secondary: #f39c12; --success: #27ae60; --error: #e74c3c; --bg: #f4f7f9; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; line-height: 1.6; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { color: var(--primary); text-align: center; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 25px; font-weight: bold; }
+        .stats { display: flex; justify-content: space-around; background: #2c3e50; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .scenario-card { background: #eef7ff; padding: 25px; border-left: 10px solid var(--primary); margin-bottom: 20px; font-size: 1.2em; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
+        .section-title { font-weight: bold; margin: 20px 0 10px 0; display: block; color: var(--primary); text-transform: uppercase; font-size: 0.9em; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        button { padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 1em; }
+        .btn-type { background: var(--primary); color: white; border: 2px solid transparent; }
+        .btn-type:hover { background: #002244; transform: translateY(-2px); }
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: #fafafa; padding: 20px; border: 2px dashed #d1d8e0; border-radius: 8px; }
+        label { background: white; padding: 10px; border-radius: 5px; border: 1px solid #ddd; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        label:hover { background: #f0f0f0; }
+        .feedback { margin-top: 20px; padding: 20px; border-radius: 8px; display: none; border: 2px solid transparent; }
+        .success-box { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+        .error-box { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
+        .rules-panel { background: #fff3e0; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 0.85em; color: #e65100; border-left: 5px solid #ff9800; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Şikayet Teşhis Simülatörü</h2>
-    <div id="scenario-box" class="scenario">Müşteri: "Sokağımızdaki lamba 3 gündür yanmıyor, karanlıkta kalıyoruz!"</div>
+<div class="container">
+    <h1>EDAŞ Kayıt Simülatörü</h1>
+    <div class="subtitle">"Veriyle Yönet, Sahayı Koru"</div>
     
-    <p><strong>Bu şikayetin türü nedir?</strong></p>
-    <div class="options">
-        <button onclick="checkAnswer('Süreç')">Süreç Şikayeti</button>
-        <button onclick="checkAnswer('Personel')">Personel Şikayeti</button>
+    <div class="stats">
+        <span>Başarı: %<span id="score">0</span></span>
+        <span>Doğru: <span id="correct-count">0</span></span>
+        <span>Hata: <span id="error-count">0</span></span>
     </div>
 
-    <div id="data-fields" style="display:none;">
-        <p><strong>Zorunlu Veriler (Hangilerini almalısın?):</strong></p>
-        <input type="checkbox" id="v1"> Direk Numarası<br>
-        <input type="checkbox" id="v2"> Mail / İrtibat No<br>
-        <input type="checkbox" id="v3"> Plaka No<br><br>
-        <button onclick="checkData()">Kaydı Tamamla</button>
+    <div id="game-zone">
+        <span class="section-title">📞 Gelen Çağrı:</span>
+        <div id="scenario-text" class="scenario-card">Yükleniyor...</div>
+
+        <span class="section-title">1. Adım: Şikayet Türünü Belirle</span>
+        <div class="btn-group">
+            <button class="btn-type" onclick="selectType('Süreç')">SÜREÇ ŞİKAYETİ</button>
+            <button class="btn-type" onclick="selectType('Personel')">PERSONEL ŞİKAYETİ</button>
+        </div>
+
+        <div id="data-step" style="display:none;">
+            <span class="section-title">2. Adım: Zorunlu Alanları Doldur (Eksik Veri = Red)</span>
+            <div class="data-grid">
+                <label><input type="checkbox" class="data-check" value="mail"> Mail / İrtibat No</label>
+                <label><input type="checkbox" class="data-check" value="plaka"> Plaka No</label>
+                <label><input type="checkbox" class="data-check" value="direk"> Direk / Sarı Levha</label>
+                <label><input type="checkbox" class="data-check" value="evrak"> Evrak / Dilekçe No</label>
+                <label><input type="checkbox" class="data-check" value="endeks"> Güncel Endeks</label>
+                <label><input type="checkbox" class="data-check" value="saat"> Olay Saati/Konum</label>
+            </div>
+            <br>
+            <button onclick="submitRecord()" style="background:var(--success); color:white; width:100%; font-size: 1.2em;">ANALİTİK KAYDI TAMAMLA</button>
+        </div>
     </div>
 
     <div id="feedback" class="feedback"></div>
+    
+    <div class="rules-panel">
+        <strong>💡 Altın Kural:</strong> Şikayet kişisel algılanmaz. Müşteriyle haklı/haksız tartışmasına girilmez. 15 iş günü ve 24/48 saat kuralları esastır!
+    </div>
+
+    <button id="next-btn" onclick="nextScenario()" style="display:none; margin-top:15px; width:100%; background:#7f8c8d; color:white;">SIRADAKİ ÇAĞRIYA GEÇ ⮕</button>
 </div>
 
 <script>
-    let currentScenario = 0;
     const scenarios = [
-        { text: 'Müşteri: "Sokağımızdaki lamba 3 gündür yanmıyor!"', type: 'Süreç', data: ['v1', 'v2'] },
-        { text: 'Müşteri: "Personeliniz sayacı okurken bana bağırdı!"', type: 'Personel', data: ['v2'] },
-        { text: 'Müşteri: "Şirket aracınız 34 ABC 123 plakalı araç çok hızlı gidiyordu!"', type: 'Personel', data: ['v2', 'v3'] }
+        { cat: "Arıza", text: "3 saattir elektrik yok, mahalleli olarak çok mağduruz!", type: "Süreç", required: ["mail", "saat"], note: "ARALIK VERİSİ: Açıklama yetersizliği en çok arıza kayıtlarında görülmüştür. Konum teyidi şart!" },
+        { cat: "Aydınlatma", text: "Parkın girişindeki lamba 2 haftadır sönük. Karanlıkta önümüzü göremiyoruz.", type: "Süreç", required: ["direk", "mail"], note: "ARALIK VERİSİ: 515 Aydınlatma hatasının çoğu Direk No eksikliğindendir." },
+        { cat: "Personel", text: "Sayacı okumaya gelen personeliniz kapıyı çarptı ve çok kaba davrandı!", type: "Personel", required: ["mail", "saat"], note: "ALTIN KURAL: Bu bir süreç değil, davranış hatasıdır. 'Personel Şikayeti' seçilmelidir." },
+        { cat: "İşletme", text: "1 hafta önce dilekçe verdim, hala cevap gelmedi. Neden ilgilenmiyorsunuz?", type: "Süreç", required: ["evrak", "mail"], note: "MEVZUAT: 15 iş günü dolmadan ve evrak no almadan şikayet açmak hatalı kayıttır!" },
+        { cat: "Araç", text: "34 EDA 186 plakalı aracınız okul önünde çok hızlı sürüyordu!", type: "Personel", required: ["plaka", "saat", "mail"], note: "VERİ KALİTESİ: Plaka olmadan açılan araç şikayetleri GPS takibi yapılamadığı için doğrudan REDDEDİLİR." },
+        { cat: "Sayaç", text: "Faturam geçen aya göre 3 katı gelmiş, personelin yanlış okuduğunu düşünüyorum.", type: "Süreç", required: ["endeks", "mail"], note: "TEŞHİS: Yüksek faturayı 'Hatalı Okuma' girmeden önce güncel endeksle teyit edin." },
+        { cat: "Kesme", text: "Borcumu ödedim, 2 saat oldu hala açılmadı. Hemen açın şu elektriği!", type: "Süreç", required: ["mail"], note: "YASAL SÜRE: İmar alanı 24 saat süresi dolmadan açılan kayıtlar hatalıdır. Müşteriyi bilgilendir." }
     ];
 
-    function checkAnswer(choice) {
-        if(choice === scenarios[currentScenario].type) {
-            document.getElementById('data-fields').style.display = 'block';
-            showFeedback('Doğru Teşhis! Şimdi zorunlu verileri seçin.', 'success');
-        } else {
-            showFeedback('Hatalı Teşhis! Bu sorunun kök nedeni ' + scenarios[currentScenario].type + ' kaynaklıdır.', 'error');
-        }
+    let current = 0; let corrects = 0; let errors = 0; let selectedType = "";
+
+    function loadScenario() {
+        document.getElementById('scenario-text').innerText = scenarios[current].text;
+        document.getElementById('data-step').style.display = 'none';
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+        document.querySelectorAll('.data-check').forEach(el => el.checked = false);
     }
 
-    function checkData() {
-        const scenario = scenarios[currentScenario];
-        const v1 = document.getElementById('v1').checked;
-        const v2 = document.getElementById('v2').checked;
-        const v3 = document.getElementById('v3').checked;
-        
-        // Basit kontrol mantığı
-        if(v2 && (scenario.data.includes('v1') == v1) && (scenario.data.includes('v3') == v3)) {
-            showFeedback('Mükemmel Kayıt! Aralık ayı hata istatistiklerini düşürdünüz.', 'success');
-        } else {
-            showFeedback('Hata! Eksik veri girdiniz (Mail veya Teknik Bilgi eksik).', 'error');
-        }
+    function selectType(type) {
+        selectedType = type;
+        document.getElementById('data-step').style.display = 'block';
+        showFeedback("Tür Teşhis Edildi: " + type + ". Şimdi verileri seçin.", "success-box", false);
     }
 
-    function showFeedback(msg, type) {
+    function submitRecord() {
+        const s = scenarios[current];
+        const checks = Array.from(document.querySelectorAll('.data-check:checked')).map(el => el.value);
+        const feedbackEl = document.getElementById('feedback');
+        const isTypeCorrect = (selectedType === s.type);
+        const isDataCorrect = s.required.every(r => checks.includes(r));
+
+        if (isTypeCorrect && isDataCorrect) {
+            corrects++;
+            showFeedback("✅ BAŞARILI KAYIT!<br>Veri kalitesi tam. Kök Neden Analizi için doğru veriyi ilettiniz.", "success-box", true);
+        } else {
+            errors++;
+            let msg = "❌ HATALI KAYIT!<br>";
+            if(!isTypeCorrect) msg += "• Yanlış Teşhis: Bu bir " + s.type + " şikayetidir.<br>";
+            if(!isDataCorrect) msg += "• Eksik Veri: " + s.required.map(x => x.toUpperCase()).join(", ") + " bilgisi zorunluydu.<br>";
+            msg += "<br><strong>💡 Analiz:</strong> " + s.note;
+            showFeedback(msg, "error-box", true);
+        }
+        updateStats();
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function updateStats() {
+        document.getElementById('correct-count').innerText = corrects;
+        document.getElementById('error-count').innerText = errors;
+        let total = corrects + errors;
+        document.getElementById('score').innerText = Math.round((corrects / total) * 100);
+    }
+
+    function showFeedback(msg, cls) {
         const f = document.getElementById('feedback');
-        f.innerHTML = msg;
-        f.className = 'feedback ' + type;
-        f.style.display = 'block';
+        f.innerHTML = msg; f.style.display = 'block'; f.className = 'feedback ' + cls;
     }
-</script>
 
+    function nextScenario() {
+        current = (current + 1) % scenarios.length;
+        loadScenario();
+    }
+
+    loadScenario();
+</script>
 </body>
 </html>
